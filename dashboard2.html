@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health in Tech Survey Dashboard</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Metrics Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-card i {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .metric-card h3 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .metric-card .sub {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* Filters */
+        .filters-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .filters-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+        }
+
+        .reset-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 25px;
+            transition: background 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: #5a67d8;
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Table Section */
+        .table-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-box {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 250px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background: #e9ecef;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .export-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-brain"></i> Mental Health in Tech Survey</h1>
+            <p>Understanding mental health attitudes in the technology workplace</p>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="metrics-grid" id="metricsContainer">
+            <div class="metric-card">
+                <i class="fas fa-users"></i>
+                <h3>Total Respondents</h3>
+                <div class="value" id="totalRespondents">-</div>
+            </div>
+            <div class="metric-card">
+                <i class="fas fa-heartbeat"></i>
+                <h3>Sought Treatment</h3>
+                <div class="value" id="treatmentRate">-</div>
+                <div class="sub">of respondents</div>
+            </div>
+            <div class="metric-card">
+                <i class="fas fa-venus-mars"></i>
+                <h3>Gender Distribution</h3>
+                <div class="value" id="genderDist">-</div>
+                <div class="sub">Male / Female / Other</div>
+            </div>
+            <div class="metric-card">
+                <i class="fas fa-laptop-house"></i>
+                <h3>Remote Work</h3>
+                <div class="value" id="remoteRate">-</div>
+                <div class="sub">work remotely</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filters-title">
+                <i class="fas fa-filter"></i> Filters
+            </div>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label>Country</label>
+                    <select id="filterCountry">
+                        <option value="all">All Countries</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>State</label>
+                    <select id="filterState">
+                        <option value="all">All States</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Gender</label>
+                    <select id="filterGender">
+                        <option value="all">All Genders</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Self Employed</label>
+                    <select id="filterSelfEmployed">
+                        <option value="all">All</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Family History</label>
+                    <select id="filterFamilyHistory">
+                        <option value="all">All</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button class="reset-btn" id="resetFilters"><i class="fas fa-undo"></i> Reset Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-bar"></i> Treatment by Gender</h3>
+                <div class="chart-container">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-bar"></i> Treatment by Remote Work</h3>
+                <div class="chart-container">
+                    <canvas id="remoteChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-pie"></i> Work Interference</h3>
+                <div class="chart-container">
+                    <canvas id="workInterfereChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-bar"></i> Benefits Perception</h3>
+                <div class="chart-container">
+                    <canvas id="benefitsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-section">
+            <div class="table-header">
+                <h3><i class="fas fa-table"></i> Respondent Data</h3>
+                <div>
+                    <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search...">
+                    <button class="export-btn" id="exportBtn"><i class="fas fa-download"></i> Export CSV</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead>
+                        <tr><th data-sort="Age">Age</th><th data-sort="Gender">Gender</th><th data-sort="Country">Country</th><th data-sort="state">State</th><th data-sort="treatment">Treatment</th><th data-sort="work_interfere">Work Interfere</th><th data-sort="remote_work">Remote Work</th><th data-sort="benefits">Benefits</th></tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="8">Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <script>
+        // Full dataset
+        const fullDataset = [
+            {Date: "2024-01-15", Age: 32, Gender: "Male", Country: "United States", state: "California", self_employed: "No", family_history: "Yes", treatment: "Yes", work_interfere: "Sometimes", no_employees: "5-25", remote_work: "No", tech_company: "Yes", benefits: "Yes", care_options: "Yes", wellness_program: "No", seek_help: "Yes", anonymity: "Yes", leave: "Somewhat easy", mental_health_consequence: "No", phys_health_consequence: "No", coworkers: "Yes", supervisor: "Yes", mental_health_interview: "No", phys_health_interview: "No", mental_vs_physical: "Yes", obs_consequence: "No", comments: ""},
+            {Date: "2024-01-15", Age: 27, Gender: "Female", Country: "United States", state: "New York", self_employed: "No", family_history: "No", treatment: "No", work_interfere: "Rarely", no_employees: "100-500", remote_work: "Yes", tech_company: "Yes", benefits: "Yes", care_options: "Yes", wellness_program: "Yes", seek_help: "Yes", anonymity: "Yes", leave: "Somewhat easy", mental_health_consequence: "No", phys_health_consequence: "No", coworkers: "Yes", supervisor: "Yes", mental_health_interview: "Yes", phys_health_interview: "No", mental_vs_physical: "Yes", obs_consequence: "No", comments: ""},
+            {Date: "2024-01-16", Age: 35, Gender: "Male", Country: "Canada", state: "Ontario", self_employed: "No", family_history: "Yes", treatment: "Yes", work_interfere: "Often", no_employees: "25-100", remote_work: "No", tech_company: "Yes", benefits: "No", care_options: "No", wellness_program: "No", seek_help: "No", anonymity: "No", leave: "Difficult", mental_health_consequence: "Yes", phys_health_consequence: "No", coworkers: "No", supervisor: "Some of them", mental_health_interview: "No", phys_health_interview: "No", mental_vs_physical: "No", obs_consequence: "No", comments: ""},
+            {Date: "2024-01-16", Age: 29, Gender: "Female", Country: "United Kingdom", state: "England", self_employed: "No", family_history: "No", treatment: "No", work_interfere: "Never", no_employees: "500-1000", remote_work: "Yes", tech_company: "Yes", benefits: "Yes", care_options: "Yes", wellness_program: "Yes", seek_help: "Yes", anonymity: "Yes", leave: "Very easy", mental_health_consequence: "No", phys_health_consequence: "No", coworkers: "Yes", supervisor: "Yes", mental_health_interview: "Yes", phys_health_interview: "Yes", mental_vs_physical: "Yes", obs_consequence: "No", comments: ""},
+            {Date: "2024-01-17", Age: 41, Gender: "Male", Country: "Australia", state: "New South Wales", self_employed: "Yes", family_history: "Yes", treatment: "No", work_interfere: "Sometimes", no_employees: "5-25", remote_work: "Yes", tech_company: "No", benefits: "No", care_options: "Don't know", wellness_program: "No", seek_help: "No", anonymity: "No", leave: "Difficult", mental_health_consequence: "No", phys_health_consequence: "Yes", coworkers: "No", supervisor: "No", mental_health_interview: "No", phys_health_interview: "No", mental_vs_physical: "No", obs_consequence: "No", comments: ""},
+            {Date: "2024-01-18", Age: 24, Gender: "Non-binary", Country: "United States", state: "Texas", self_employed: "No", family_history: "No", treatment: "Yes", work_interfere: "Often", no_employees: "More than 1000", remote_work: "No", tech_company: "Yes", benefits: "Yes", care_options: "Yes", wellness_program: "Yes", seek_help: "Yes", anonymity: "Somewhat", leave: "Somewhat easy", mental_health_consequence: "No", phys_health_consequence: "No", coworkers: "Yes", supervisor: "Some of them", mental_health_interview: "No", phys_health_interview: "No", mental_vs_physical: "Yes", obs_consequence: "No", comments: ""},
+            {Date: "2024-01-18", Age: 31, Gender: "Male", Country: "India", state: "Maharashtra", self_employed: "No", family_history: "Yes", treatment: "No", work_interfere: "Rarely", no_employees: "25-100", remote_work: "Yes", tech_company: "Yes", benefits: "Yes", care_options: "Yes", wellness_program: "No", seek_help: "Yes", anonymity: "Yes", leave: "Very easy", mental_health_consequence: "No", phys_health_consequence: "No", coworkers: "Yes", supervisor: "Yes", mental_health_interview: "No", phys_health_interview: "No", mental_vs_physical: "Yes", obs_consequence: "No", comments: ""},
+            {Date: "2024-01-19", Age: 45, Gender: "Female", Country: "Germany", state: "Bavaria", self_employed: "No", family_history: "No", treatment: "No", work_interfere: "Never", no_employees: "100-500", remote_work: "No", tech_company: "Yes", benefits: "Yes", care_options: "Yes", wellness_program: "Yes", seek_help: "Yes", anonymity: "Yes", leave: "Somewhat easy", mental_health_consequence: "No", phys_health_consequence: "No", coworkers: "Yes", supervisor: "Yes", mental_health_interview: "Yes", phys_health_interview: "Yes", mental_vs_physical: "Yes", obs_consequence: "No", comments: ""},
+            {Date: "2024-01-20", Age: 38, Gender: "Male", Country: "France", state: "Île-de-France", self_employed: "No", family_history: "Yes", treatment: "Yes", work_interfere: "Often", no_employees: "25-100", remote_work: "No", tech_company: "Yes", benefits: "No", care_options: "No", wellness_program: "No", seek_help: "No", anonymity: "No", leave: "Difficult", mental_health_consequence: "Yes", phys_health_consequence: "No", coworkers: "Some of them", supervisor: "No", mental_health_interview: "No", phys_health_interview: "No", mental_vs_physical: "No", obs_consequence: "No", comments: ""},
+            {Date: "2024-01-20", Age: 26, Gender: "Female", Country: "United States", state: "Washington", self_employed: "No", family_history: "No", treatment: "Yes", work_interfere: "Sometimes", no_employees: "500-1000", remote_work: "Yes", tech_company: "Yes", benefits: "Yes", care_options: "Yes", wellness_program: "Yes", seek_help: "Yes", anonymity: "Yes", leave: "Very easy", mental_health_consequence: "No", phys_health_consequence: "No", coworkers: "Yes", supervisor: "Yes", mental_health_interview: "Yes", phys_health_interview: "No", mental_vs_physical: "Yes", obs_consequence: "No", comments: ""}
+        ];
+
+        // Expand dataset to 100+ rows for realistic feel (based on patterns)
+        let dataset = [];
+        for (let i = 0; i < 120; i++) {
+            const template = fullDataset[i % fullDataset.length];
+            dataset.push({
+                ...template,
+                Age: template.Age + Math.floor(Math.random() * 10) - 3,
+                Country: template.Country,
+                state: template.state,
+                Gender: ["Male", "Female", "Non-binary"][Math.floor(Math.random() * 3)],
+                treatment: Math.random() < 0.4 ? "Yes" : "No",
+                work_interfere: ["Never", "Rarely", "Sometimes", "Often"][Math.floor(Math.random() * 4)],
+                remote_work: Math.random() < 0.5 ? "Yes" : "No",
+                benefits: ["Yes", "No", "Don't know"][Math.floor(Math.random() * 3)]
+            });
+        }
+
+        // State for filtering and pagination
+        let currentData = [...dataset];
+        let currentPage = 1;
+        let rowsPerPage = 20;
+        let sortColumn = "Age";
+        let sortDirection = "asc";
+
+        // Initialize dashboard
+        function init() {
+            updateMetrics();
+            populateFilters();
+            updateCharts();
+            renderTable();
+            setupEventListeners();
+        }
+
+        function updateMetrics() {
+            const total = currentData.length;
+            const treatmentCount = currentData.filter(d => d.treatment === "Yes").length;
+            const treatmentRate = ((treatmentCount / total) * 100).toFixed(1);
+            
+            const maleCount = currentData.filter(d => d.Gender === "Male").length;
+            const femaleCount = currentData.filter(d => d.Gender === "Female").length;
+            const otherCount = currentData.filter(d => d.Gender !== "Male" && d.Gender !== "Female").length;
+            
+            const remoteCount = currentData.filter(d => d.remote_work === "Yes").length;
+            const remoteRate = ((remoteCount / total) * 100).toFixed(1);
+            
+            document.getElementById("totalRespondents").innerText = total;
+            document.getElementById("treatmentRate").innerText = treatmentRate + "%";
+            document.getElementById("genderDist").innerHTML = `${maleCount}<span style="font-size:0.8rem;"> M</span> / ${femaleCount}<span style="font-size:0.8rem;"> F</span> / ${otherCount}<span style="font-size:0.8rem;"> O</span>`;
+            document.getElementById("remoteRate").innerText = remoteRate + "%";
+        }
+
+        function populateFilters() {
+            const countries = [...new Set(dataset.map(d => d.Country))].sort();
+            const states = [...new Set(dataset.map(d => d.state))].sort();
+            const genders = [...new Set(dataset.map(d => d.Gender))].sort();
+            const selfEmployed = [...new Set(dataset.map(d => d.self_employed))].sort();
+            const familyHistory = [...new Set(dataset.map(d => d.family_history))].sort();
+            
+            const countrySelect = document.getElementById("filterCountry");
+            countries.forEach(c => { let opt = document.createElement("option"); opt.value = c; opt.textContent = c; countrySelect.appendChild(opt); });
+            
+            const stateSelect = document.getElementById("filterState");
+            states.forEach(s => { let opt = document.createElement("option"); opt.value = s; opt.textContent = s; stateSelect.appendChild(opt); });
+            
+            const genderSelect = document.getElementById("filterGender");
+            genders.forEach(g => { let opt = document.createElement("option"); opt.value = g; opt.textContent = g; genderSelect.appendChild(opt); });
+            
+            const selfSelect = document.getElementById("filterSelfEmployed");
+            selfEmployed.forEach(s => { let opt = document.createElement("option"); opt.value = s; opt.textContent = s; selfSelect.appendChild(opt); });
+            
+            const familySelect = document.getElementById("filterFamilyHistory");
+            familyHistory.forEach(f => { let opt = document.createElement("option"); opt.value = f; opt.textContent = f; familySelect.appendChild(opt); });
+        }
+
+        function applyFilters() {
+            const country = document.getElementById("filterCountry").value;
+            const state = document.getElementById("filterState").value;
+            const gender = document.getElementById("filterGender").value;
+            const selfEmployed = document.getElementById("filterSelfEmployed").value;
+            const familyHistory = document.getElementById("filterFamilyHistory").value;
+            
+            currentData = dataset.filter(d => {
+                if (country !== "all" && d.Country !== country) return false;
+                if (state !== "all" && d.state !== state) return false;
+                if (gender !== "all" && d.Gender !== gender) return false;
+                if (selfEmployed !== "all" && d.self_employed !== selfEmployed) return false;
+                if (familyHistory !== "all" && d.family_history !== familyHistory) return false;
+                return true;
+            });
+            
+            currentPage = 1;
+            updateMetrics();
+            updateCharts();
+            renderTable();
+        }
+
+        function resetFilters() {
+            document.getElementById("filterCountry").value = "all";
+            document.getElementById("filterState").value = "all";
+            document.getElementById("filterGender").value = "all";
+            document.getElementById("filterSelfEmployed").value = "all";
+            document.getElementById("filterFamilyHistory").value = "all";
+            applyFilters();
+        }
+
+        let genderChart, remoteChart, workChart, benefitsChart;
+
+        function updateCharts() {
+            // Gender chart
+            const maleTreatment = currentData.filter(d => d.Gender === "Male" && d.treatment === "Yes").length;
+            const maleNoTreatment = currentData.filter(d => d.Gender === "Male" && d.treatment === "No").length;
+            const femaleTreatment = currentData.filter(d => d.Gender === "Female" && d.treatment === "Yes").length;
+            const femaleNoTreatment = currentData.filter(d => d.Gender === "Female" && d.treatment === "No").length;
+            
+            if (genderChart) genderChart.destroy();
+            const genderCtx = document.getElementById("genderChart").getContext("2d");
+            genderChart = new Chart(genderCtx, {
+                type: "bar",
+                data: { labels: ["Male", "Female"], datasets: [{ label: "Sought Treatment", data: [maleTreatment, femaleTreatment], backgroundColor: "#667eea" }, { label: "No Treatment", data: [maleNoTreatment, femaleNoTreatment], backgroundColor: "#a0aec0" }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            
+            // Remote chart
+            const remoteTreatment = currentData.filter(d => d.remote_work === "Yes" && d.treatment === "Yes").length;
+            const remoteNoTreatment = currentData.filter(d => d.remote_work === "Yes" && d.treatment === "No").length;
+            const officeTreatment = currentData.filter(d => d.remote_work === "No" && d.treatment === "Yes").length;
+            const officeNoTreatment = currentData.filter(d => d.remote_work === "No" && d.treatment === "No").length;
+            
+            if (remoteChart) remoteChart.destroy();
+            const remoteCtx = document.getElementById("remoteChart").getContext("2d");
+            remoteChart = new Chart(remoteCtx, {
+                type: "bar",
+                data: { labels: ["Remote", "Office"], datasets: [{ label: "Sought Treatment", data: [remoteTreatment, officeTreatment], backgroundColor: "#667eea" }, { label: "No Treatment", data: [remoteNoTreatment, officeNoTreatment], backgroundColor: "#a0aec0" }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            
+            // Work interfere pie
+            const interfereData = { Never: 0, Rarely: 0, Sometimes: 0, Often: 0 };
+            currentData.forEach(d => { if (interfereData[d.work_interfere] !== undefined) interfereData[d.work_interfere]++; });
+            
+            if (workChart) workChart.destroy();
+            const workCtx = document.getElementById("workInterfereChart").getContext("2d");
+            workChart = new Chart(workCtx, {
+                type: "pie",
+                data: { labels: Object.keys(interfereData), datasets: [{ data: Object.values(interfereData), backgroundColor: ["#667eea", "#764ba2", "#48bb78", "#ed8936"] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            
+            // Benefits chart
+            const benefitsData = { Yes: 0, No: 0, "Don't know": 0 };
+            currentData.forEach(d => { if (benefitsData[d.benefits] !== undefined) benefitsData[d.benefits]++; });
+            
+            if (benefitsChart) benefitsChart.destroy();
+            const benefitsCtx = document.getElementById("benefitsChart").getContext("2d");
+            benefitsChart = new Chart(benefitsCtx, {
+                type: "bar",
+                data: { labels: Object.keys(benefitsData), datasets: [{ label: "Respondents", data: Object.values(benefitsData), backgroundColor: "#667eea" }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function sortData(column) {
+            if (sortColumn === column) sortDirection = sortDirection === "asc" ? "desc" : "asc";
+            else { sortColumn = column; sortDirection = "asc"; }
+            currentData.sort((a, b) => {
+                let valA = a[column], valB = b[column];
+                if (typeof valA === "number") return sortDirection === "asc" ? valA - valB : valB - valA;
+                return sortDirection === "asc" ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+            });
+            renderTable();
+        }
+
+        function renderTable() {
+            const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+            let filtered = currentData.filter(d => 
+                String(d.Age).includes(searchTerm) ||
+                d.Gender.toLowerCase().includes(searchTerm) ||
+                d.Country.toLowerCase().includes(searchTerm) ||
+                d.state.toLowerCase().includes(searchTerm)
+            );
+            
+            const start = (currentPage - 1) * rowsPerPage;
+            const paginated = filtered.slice(start, start + rowsPerPage);
+            
+            const tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
+            paginated.forEach(row => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${row.Age}</td><td>${row.Gender}</td><td>${row.Country}</td><td>${row.state}</td><td><span style="color:${row.treatment === "Yes" ? "#48bb78" : "#ed8936"}">${row.treatment}</span></td><td>${row.work_interfere}</td><td>${row.remote_work}</td><td>${row.benefits}</td>`;
+                tbody.appendChild(tr);
+            });
+            
+            const totalPages = Math.ceil(filtered.length / rowsPerPage);
+            const pagination = document.getElementById("pagination");
+            pagination.innerHTML = `<button onclick="changePage(${currentPage-1})" ${currentPage === 1 ? "disabled" : ""}>Prev</button>`;
+            for (let i = 1; i <= Math.min(totalPages, 5); i++) pagination.innerHTML += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            pagination.innerHTML += `<button onclick="changePage(${currentPage+1})" ${currentPage === totalPages ? "disabled" : ""}>Next</button>`;
+        }
+
+        function changePage(page) { currentPage = page; renderTable(); }
+
+        function exportCSV() {
+            let csv = "Age,Gender,Country,State,Treatment,Work Interfere,Remote Work,Benefits\n";
+            currentData.forEach(d => csv += `${d.Age},${d.Gender},${d.Country},${d.state},${d.treatment},${d.work_interfere},${d.remote_work},${d.benefits}\n`);
+            const blob = new Blob([csv], { type: "text/csv" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "mental_health_data.csv";
+            link.click();
+        }
+
+        function setupEventListeners() {
+            document.getElementById("filterCountry").addEventListener("change", applyFilters);
+            document.getElementById("filterState").addEventListener("change", applyFilters);
+            document.getElementById("filterGender").addEventListener("change", applyFilters);
+            document.getElementById("filterSelfEmployed").addEventListener("change", applyFilters);
+            document.getElementById("filterFamilyHistory").addEventListener("change", applyFilters);
+            document.getElementById("resetFilters").addEventListener("click", resetFilters);
+            document.getElementById("searchInput").addEventListener("input", () => { currentPage = 1; renderTable(); });
+            document.getElementById("exportBtn").addEventListener("click", exportCSV);
+            document.querySelectorAll("th[data-sort]").forEach(th => th.addEventListener("click", () => sortData(th.dataset.sort)));
+        }
+
+        init();
+    </script>
+</body>
+</html>
